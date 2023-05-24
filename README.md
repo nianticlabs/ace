@@ -12,7 +12,7 @@ This repository contains the code associated to the ACE paper:
 For further information please visit:
 
 - [Project page (with videos, method explanations, dataset details)](https://nianticlabs.github.io/ace)
-- [Arxiv](TODO)
+- [Arxiv](https://arxiv.org/abs/2305.14059)
 
 Table of contents:
 
