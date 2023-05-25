@@ -138,8 +138,15 @@ Basic usage:
 
 ```shell
 ./train_ace.py <scene path> <output map name>
-# Example:
+
+# Example: Train and save checkpoint at `output` directory
+mkdir output
+
+# Train with D-SLAM poses
 ./train_ace.py datasets/7scenes_chess output/7scenes_chess.pt
+
+# Or train with PGT poses
+./train_ace.py datasets/pgt_7scenes_chess output/7scenes_chess.pt
 ```
 
 The output map file contains just the weights of the scene-specific head network -- encoded as half-precision floating
