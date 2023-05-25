@@ -9,5 +9,8 @@ datasets/wayspots_*
 datasets/pgt_*
 datasets/visloc_pseudo_gt_limitations
 
+# dsacstar folder
+dsacstar/
+
 # Outputs.
 output/
