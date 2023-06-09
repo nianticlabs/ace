@@ -342,3 +342,9 @@ This code builds on previous camera relocalization pipelines, namely DSAC, DSAC+
   year={2021}
 }
 ```
+
+## License
+
+Copyright © Niantic, Inc. 2023. Patent Pending.
+All rights reserved.
+Please see the [license file](LICENSE) for terms.
