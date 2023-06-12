@@ -12,7 +12,8 @@ from skimage import io
 
 # name of the folder where we download the original 7scenes dataset to
 # we restructure the dataset by creating symbolic links to that folder
-src_folder = '7scenes_source'
+src_folder = '/mnt/nas/share-all/caizebin/03.dataset/ace/7scenes_source'
+dst_folder = '/mnt/nas/share-all/caizebin/03.dataset/ace/7scenes_ace'
 focal_length = 525.0
 
 # focal length of the depth sensor (source: https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/)
@@ -27,35 +28,66 @@ nn_subsampling = 8
 
 # transformation from depth sensor to RGB sensor
 # calibration according to https://projet.liris.cnrs.fr/voir/activities-dataset/kinect-calibration.html
-d_to_rgb = np.array([
-    [9.9996518012567637e-01, 2.6765126468950343e-03, -7.9041012313000904e-03, -2.5558943178152542e-02],
-    [-2.7409311281316700e-03, 9.9996302803027592e-01, -8.1504520778013286e-03, 1.0109636268061706e-04],
-    [7.8819942130445332e-03, 8.1718328771890631e-03, 9.9993554558014031e-01, 2.0318321729487039e-03],
-    [0, 0, 0, 1]
-])
+d_to_rgb = np.array([[
+    9.9996518012567637e-01, 2.6765126468950343e-03, -7.9041012313000904e-03,
+    -2.5558943178152542e-02
+],
+                     [
+                         -2.7409311281316700e-03, 9.9996302803027592e-01,
+                         -8.1504520778013286e-03, 1.0109636268061706e-04
+                     ],
+                     [
+                         7.8819942130445332e-03, 8.1718328771890631e-03,
+                         9.9993554558014031e-01, 2.0318321729487039e-03
+                     ], [0, 0, 0, 1]])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Download and setup the 7Scenes dataset.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('--depth', type=str, choices=['none', 'rendered', 'calibrated'], default='none',
-                        help='none: ignore depth maps; rendered: download depth rendered using 3D scene model (28GB); calibrated: register original depth maps to RGB')
+    parser.add_argument(
+        '--depth',
+        type=str,
+        choices=['none', 'rendered', 'calibrated'],
+        default='none',
+        help=
+        'none: ignore depth maps; rendered: download depth rendered using 3D scene model (28GB); calibrated: register original depth maps to RGB'
+    )
 
-    parser.add_argument('--eye', type=str, choices=['none', 'calibrated'], default='none',
-                        help='none: ignore eye coordinates; original: calibrate original depth maps and precompute eye coordinates')
+    parser.add_argument(
+        '--eye',
+        type=str,
+        choices=['none', 'calibrated'],
+        default='none',
+        help=
+        'none: ignore eye coordinates; original: calibrate original depth maps and precompute eye coordinates'
+    )
 
-    parser.add_argument('--poses', type=str, choices=['original', 'calibrated', 'pgt'], default='calibrated',
-                        help='original: use raw poses of depth sensor; '
-                             'calibrated: register poses to RGB sensor; '
-                             'pgt: get SfM poses from external repository (Brachmann et al., ICCV21)')
+    parser.add_argument(
+        '--poses',
+        type=str,
+        choices=['original', 'calibrated', 'pgt'],
+        default='calibrated',
+        help='original: use raw poses of depth sensor; '
+        'calibrated: register poses to RGB sensor; '
+        'pgt: get SfM poses from external repository (Brachmann et al., ICCV21)'
+    )
 
     opt = parser.parse_args()
 
-    print("\n############################################################################")
-    print("# Please make sure to check this dataset's license before using it!        #")
-    print("# https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/ #")
-    print("############################################################################\n\n")
+    print(
+        "\n############################################################################"
+    )
+    print(
+        "# Please make sure to check this dataset's license before using it!        #"
+    )
+    print(
+        "# https://www.microsoft.com/en-us/research/project/rgb-d-dataset-7-scenes/ #"
+    )
+    print(
+        "############################################################################\n\n"
+    )
 
     license_response = input('Please confirm with "yes" or abort. ')
     if not (license_response == "yes" or license_response == "y"):
@@ -63,11 +95,20 @@ if __name__ == '__main__':
         exit()
 
     if opt.poses == 'pgt':
+        dst_folder = dst_folder + "_pgt"
 
-        print("\n###################################################################")
-        print("# You requested external pose files. Please check the license at: #")
-        print("# https://github.com/tsattler/visloc_pseudo_gt_limitations        #")
-        print("###################################################################\n\n")
+        print(
+            "\n###################################################################"
+        )
+        print(
+            "# You requested external pose files. Please check the license at: #"
+        )
+        print(
+            "# https://github.com/tsattler/visloc_pseudo_gt_limitations        #"
+        )
+        print(
+            "###################################################################\n\n"
+        )
 
         license_response = input('Please confirm with "yes" or abort. ')
         if not (license_response == "yes" or license_response == "y"):
@@ -81,14 +122,19 @@ if __name__ == '__main__':
     dutil.mkdir(src_folder)
     os.chdir(src_folder)
 
-    for ds in ['chess', 'fire', 'heads', 'office', 'pumpkin', 'redkitchen', 'stairs']:
+    for ds in [
+            'chess', 'fire', 'heads', 'office', 'pumpkin', 'redkitchen',
+            'stairs'
+    ]:
 
         if not os.path.exists(ds):
 
-            print("=== Downloading 7scenes Data:", ds, "===============================")
+            print("=== Downloading 7scenes Data:", ds,
+                  "===============================")
 
             os.system(
-                'wget http://download.microsoft.com/download/2/8/5/28564B23-0828-408F-8631-23B1EFF1DAC8/' + ds + '.zip')
+                'wget http://download.microsoft.com/download/2/8/5/28564B23-0828-408F-8631-23B1EFF1DAC8/'
+                + ds + '.zip')
             os.system('unzip ' + ds + '.zip')
             os.system('rm ' + ds + '.zip')
 
@@ -100,24 +146,28 @@ if __name__ == '__main__':
                     os.system('unzip ' + ds + '/' + file + ' -d ' + ds)
                     os.system('rm ' + ds + '/' + file)
         else:
-            print(f"Found data of scene {ds} already. Assuming its complete and skipping download.")
+            print(
+                f"Found data of scene {ds} already. Assuming its complete and skipping download."
+            )
 
     print("Processing frames...")
-
 
     def process_scene(ds):
 
         if opt.poses == 'pgt':
-            target_folder = '../pgt_7scenes_' + ds + '/'
+            target_folder = f'{dst_folder}/pgt_7scenes_{ds}/'
         else:
-            target_folder = '../7scenes_' + ds + '/'
+            target_folder = f'{dst_folder}/7scenes_{ds}/'
 
         def link_frames(split_file, variant):
 
             # create subfolders
-            dutil.mkdir(target_folder + variant + '/rgb/')
-            dutil.mkdir(target_folder + variant + '/poses/')
-            dutil.mkdir(target_folder + variant + '/calibration/')
+            rgb_path = f"{target_folder}{variant}/rgb"
+            poses_path = f"{target_folder}{variant}/poses"
+            calibration = f"{target_folder}{variant}/calibration"
+            dutil.mkdir(rgb_path)
+            dutil.mkdir(poses_path)
+            dutil.mkdir(calibration)
             if opt.depth == 'calibrated':
                 dutil.mkdir(target_folder + variant + '/depth/')
             if opt.eye == 'calibrated':
@@ -131,7 +181,8 @@ if __name__ == '__main__':
 
             # read external poses and calibration if requested
             if opt.poses == 'pgt':
-                pgt_file = os.path.join('..', external_pgt_folder, '7scenes', f'{ds}_{variant}.txt')
+                pgt_file = os.path.join('..', external_pgt_folder, '7scenes',
+                                        f'{ds}_{variant}.txt')
                 pgt_poses = dutil.read_pose_data(pgt_file)
 
             for seq in split:
@@ -140,8 +191,11 @@ if __name__ == '__main__':
                 # link images
                 images = [f for f in files if f.endswith('color.png')]
                 for img in images:
+                    # os.system(
+                    #     'ln -s ../../../' + src_folder + '/' + ds + '/' + seq + '/' + img + ' ' + target_folder + variant + '/rgb/' + seq + '-' + img)
                     os.system(
-                        'ln -s ../../../' + src_folder + '/' + ds + '/' + seq + '/' + img + ' ' + target_folder + variant + '/rgb/' + seq + '-' + img)
+                        f'cp {src_folder}/{ds}/{seq}/{img} {rgb_path}/{seq}-{img}'
+                    )
 
                 pose_files = [f for f in files if f.endswith('pose.txt')]
 
@@ -150,15 +204,19 @@ if __name__ == '__main__':
 
                     # link original poses
                     for p_file in pose_files:
+                        # os.system(
+                        #     'ln -s ../../../' + src_folder + '/' + ds + '/' + seq + '/' + p_file + ' ' + target_folder + variant + '/poses/' + seq + '-' + p_file)
                         os.system(
-                            'ln -s ../../../' + src_folder + '/' + ds + '/' + seq + '/' + p_file + ' ' + target_folder + variant + '/poses/' + seq + '-' + p_file)
-
+                            f'cp {src_folder}/{ds}/{seq}/{p_file} {poses_path}/{seq}-{p_file}'
+                        )
                 elif opt.poses == 'pgt':
 
                     # use poses as externally provided
                     for p_file in pose_files:
-                        cam_pose, _ = pgt_poses[os.path.join(seq, dutil.get_base_file_name(p_file))]
-                        dutil.write_cam_pose(target_folder + variant + '/poses/' + seq + '-' + p_file, cam_pose)
+                        cam_pose, _ = pgt_poses[os.path.join(
+                            seq, dutil.get_base_file_name(p_file))]
+                        dutil.write_cam_pose(f"{poses_path}/{seq}-{p_file}",
+                                             cam_pose)
 
                 else:
 
@@ -171,7 +229,8 @@ if __name__ == '__main__':
                         cam_pose = np.matmul(cam_pose, np.linalg.inv(d_to_rgb))
 
                         # write adjusted pose (aligned to the RGB sensor)
-                        dutil.write_cam_pose(target_folder + variant + '/poses/' + seq + '-' + p_file, cam_pose)
+                        dutil.write_cam_pose(f"{poses_path}/{seq}-{p_file}",
+                                             cam_pose)
 
                 # create calibration files
                 if opt.poses == 'pgt':
@@ -181,14 +240,15 @@ if __name__ == '__main__':
                         calib_file = f'{base_file}.calibration.txt'
 
                         _, rgb_f = pgt_poses[os.path.join(seq, base_file)]
-                        dutil.write_focal_length(target_folder + variant + '/calibration/' + seq + '-' + calib_file,
-                                                 rgb_f)
+                        dutil.write_focal_length(
+                            target_folder + variant + '/calibration/' + seq +
+                            '-' + calib_file, rgb_f)
                 else:
                     for i in range(len(images)):
                         dutil.write_focal_length(
-                            target_folder + variant + '/calibration/%s-frame-%s.calibration.txt' % (
-                            seq, str(i).zfill(6)),
-                            focal_length)
+                            target_folder + variant +
+                            '/calibration/%s-frame-%s.calibration.txt' %
+                            (seq, str(i).zfill(6)), focal_length)
 
                 if opt.depth != 'calibrated' and opt.eye != 'calibrated':
                     # no calibration requested, done
@@ -201,7 +261,8 @@ if __name__ == '__main__':
 
                     if opt.poses == 'pgt':
                         # use correct per-frame focal length if provided
-                        _, rgb_f = pgt_poses[os.path.join(seq, dutil.get_base_file_name(d_file))]
+                        _, rgb_f = pgt_poses[os.path.join(
+                            seq, dutil.get_base_file_name(d_file))]
                     else:
                         # use default focal length as fall back
                         rgb_f = focal_length
@@ -264,7 +325,9 @@ if __name__ == '__main__':
                         # store calibrated depth
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
-                            io.imsave(target_folder + variant + '/depth/' + seq + '-' + d_file, registered_depth)
+                            io.imsave(
+                                target_folder + variant + '/depth/' + seq +
+                                '-' + d_file, registered_depth)
 
                     if opt.eye != 'calibrated':
                         # done
@@ -278,8 +341,10 @@ if __name__ == '__main__':
                     eye_tensor = np.zeros((3, out_h, out_w))
 
                     # generate pixel coordinates
-                    eye_tensor[0] = np.dstack([np.arange(0, out_w)] * out_h)[0].T * nn_subsampling + nn_offset
-                    eye_tensor[1] = np.dstack([np.arange(0, out_h)] * out_w)[0] * nn_subsampling + nn_offset
+                    eye_tensor[0] = np.dstack([np.arange(
+                        0, out_w)] * out_h)[0].T * nn_subsampling + nn_offset
+                    eye_tensor[1] = np.dstack([np.arange(
+                        0, out_h)] * out_w)[0] * nn_subsampling + nn_offset
 
                     # substract principal point
                     eye_tensor[0] -= img_w / 2
@@ -288,25 +353,28 @@ if __name__ == '__main__':
                     # prepare depth (convert to meters and subsample)
                     registered_depth = registered_depth.astype(float)
                     registered_depth /= 1000
-                    registered_depth = registered_depth[nn_offset::nn_subsampling, nn_offset::nn_subsampling]
+                    registered_depth = registered_depth[
+                        nn_offset::nn_subsampling, nn_offset::nn_subsampling]
 
                     # project
                     eye_tensor[0:2] /= rgb_f
-                    eye_tensor[2, 0:registered_depth.shape[0], 0:registered_depth.shape[1]] = registered_depth
+                    eye_tensor[2, 0:registered_depth.shape[0],
+                               0:registered_depth.shape[1]] = registered_depth
                     eye_tensor[0] *= eye_tensor[2]
                     eye_tensor[1] *= eye_tensor[2]
 
                     eye_tensor = torch.from_numpy(eye_tensor).float()
 
-                    torch.save(eye_tensor,
-                               target_folder + variant + '/eye/' + seq + '-' + d_file[:-10] + '.eye.dat')
+                    torch.save(
+                        eye_tensor, target_folder + variant + '/eye/' + seq +
+                        '-' + d_file[:-10] + '.eye.dat')
 
         link_frames('TrainSplit.txt', 'train')
         link_frames('TestSplit.txt', 'test')
 
-
-    Parallel(n_jobs=7, verbose=0)(
-        map(delayed(process_scene), ['chess', 'fire', 'heads', 'office', 'pumpkin', 'redkitchen', 'stairs']))
+    Parallel(n_jobs=7, verbose=0)(map(delayed(process_scene), [
+        'chess', 'fire', 'heads', 'office', 'pumpkin', 'redkitchen', 'stairs'
+    ]))
 
     if opt.depth == 'rendered':
         os.chdir('..')

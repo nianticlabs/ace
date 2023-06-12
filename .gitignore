@@ -1,5 +1,8 @@
 __pycache__/
-.idea/
+dist
+dsacstar/build
+dsacstar/dist
+*.egg-info
 
 # Dataset files.
 datasets/7scenes_*
