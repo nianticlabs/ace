@@ -60,12 +60,6 @@ python setup.py install
 
 Having done the steps above, you are ready to experiment with ACE!
 
-> **Note:**
-> The pretrained, scene-agnostic, encoder network is provided as a Git LFS file (`ace_encoder_pretrained.pt`).
-> Make sure LFS is installed and configured correctly before proceeding with the training and evaluation of ACE
-> networks.
-> See [this guide](https://github.com/git-lfs/git-lfs#getting-started) for further information.
-
 ## Datasets
 
 The ACE method has been evaluated using multiple published datasets:
