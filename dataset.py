@@ -362,7 +362,13 @@ class CamLocDataset(Dataset):
         image = self._load_image(idx)
 
         # Load intrinsics.
-        focal_length = float(np.loadtxt(self.calibration_files[idx]))
+        intrinsics_matrix = np.loadtxt(self.calibration_files[idx])
+        if focal_length.size == 1:
+            focal_length = float(intrinsics_matrix)
+        else:
+            intrinsics_matrix = intrinsics_matrix.tolist()
+            centre_point = intrinsics_matrix[-2:]
+            focal_length = intrinsics_matrix[0]
 
         # The image will be scaled to image_height, adjust focal length as well.
         f_scale_factor = image_height / image.shape[0]
@@ -486,9 +492,13 @@ class CamLocDataset(Dataset):
         intrinsics = torch.eye(3)
         intrinsics[0, 0] = focal_length
         intrinsics[1, 1] = focal_length
-        # Hardcode the principal point to the centre of the image.
-        intrinsics[0, 2] = image.shape[2] / 2
-        intrinsics[1, 2] = image.shape[1] / 2
+        # Hardcode the principal point to the centre of the image unless otherwise specified.
+        if centre_point:
+            intrinsics[0, 2] = centre_point[0]
+            intrinsics[1, 2] = centre_point[1]
+        else:
+            intrinsics[0, 2] = image.shape[2] / 2
+            intrinsics[1, 2] = image.shape[1] / 2
 
         # Also need the inverse.
         intrinsics_inv = intrinsics.inverse()
