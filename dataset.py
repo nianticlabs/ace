@@ -365,10 +365,15 @@ class CamLocDataset(Dataset):
         k = np.loadtxt(self.calibration_files[idx])
         if k.size == 1:
             focal_length = float(k)
-        else:
+            centre_point = None
+        elif k.shape == (3, 3):
             k = k.tolist()
             focal_length = [k[0][0], k[1][1]]
             centre_point = [k[0][2], k[1][2]]
+        else: 
+            raise Exception("Calibration file must contain either a 3x3 camera \
+                intrinsics matrix or a single float giving the focal length \
+                of the camera.")
 
         # The image will be scaled to image_height, adjust focal length as well.
         f_scale_factor = image_height / image.shape[0]
