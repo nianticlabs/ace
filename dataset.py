@@ -362,11 +362,26 @@ class CamLocDataset(Dataset):
         image = self._load_image(idx)
 
         # Load intrinsics.
-        focal_length = float(np.loadtxt(self.calibration_files[idx]))
+        k = np.loadtxt(self.calibration_files[idx])
+        if k.size == 1:
+            focal_length = float(k)
+            centre_point = None
+        elif k.shape == (3, 3):
+            k = k.tolist()
+            focal_length = [k[0][0], k[1][1]]
+            centre_point = [k[0][2], k[1][2]]
+        else: 
+            raise Exception("Calibration file must contain either a 3x3 camera \
+                intrinsics matrix or a single float giving the focal length \
+                of the camera.")
 
         # The image will be scaled to image_height, adjust focal length as well.
         f_scale_factor = image_height / image.shape[0]
-        focal_length *= f_scale_factor
+        if centre_point:
+            centre_point = [c * f_scale_factor for c in centre_point]
+            focal_length = [f * f_scale_factor for f in focal_length]
+        else:
+            focal_length *= f_scale_factor
 
         # Rescale image.
         image = self._resize_image(image, image_height)
@@ -484,11 +499,18 @@ class CamLocDataset(Dataset):
 
         # Create the intrinsics matrix.
         intrinsics = torch.eye(3)
-        intrinsics[0, 0] = focal_length
-        intrinsics[1, 1] = focal_length
-        # Hardcode the principal point to the centre of the image.
-        intrinsics[0, 2] = image.shape[2] / 2
-        intrinsics[1, 2] = image.shape[1] / 2
+        
+        # Hardcode the principal point to the centre of the image unless otherwise specified.
+        if centre_point:
+            intrinsics[0, 0] = focal_length[0]
+            intrinsics[1, 1] = focal_length[1]
+            intrinsics[0, 2] = centre_point[0]
+            intrinsics[1, 2] = centre_point[1]
+        else:
+            intrinsics[0, 0] = focal_length
+            intrinsics[1, 1] = focal_length
+            intrinsics[0, 2] = image.shape[2] / 2
+            intrinsics[1, 2] = image.shape[1] / 2
 
         # Also need the inverse.
         intrinsics_inv = intrinsics.inverse()
