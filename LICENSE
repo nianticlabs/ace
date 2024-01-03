@@ -182,9 +182,9 @@ commercialization payable to the Licensee, as the case may be).
     The Licensee shall acknowledge the Authors and use of the Software in the
 publication of any work that uses, or results that are achieved through, the
 use of the Software. The following citation shall be included in the
-acknowledgement: “SimpleRecon: 3D Reconstruction Without 3D Convolutions",
-by M. Sayed, J. Gibson, J. Watson, V. Prisacariu, M. Firman, C. Godard,
-arXiv:2208.14743”.
+acknowledgement: "Accelerated Coordinate Encoding: Learning to Relocalize in
+Minutes using RGB and Poses"; by Eric Brachmann, Tommaso Cavallari, and Victor 
+Adrian Prisacariu; CVPR 2023.
 
 
 10. Governing Law.
