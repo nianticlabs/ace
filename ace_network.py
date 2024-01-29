@@ -86,18 +86,13 @@ class Head(nn.Module):
         self.res3_conv2 = nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0)
         self.res3_conv3 = nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0)
 
-        self.res_blocks = []
-
-        for block in range(num_head_blocks):
-            self.res_blocks.append((
+        self.res_blocks = nn.ModuleList(
+            nn.ModuleList(([
                 nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0),
                 nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0),
                 nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0),
-            ))
-
-            super(Head, self).add_module(str(block) + 'c0', self.res_blocks[block][0])
-            super(Head, self).add_module(str(block) + 'c1', self.res_blocks[block][1])
-            super(Head, self).add_module(str(block) + 'c2', self.res_blocks[block][2])
+            ])) for block in range(num_head_blocks)
+        )
 
         self.fc1 = nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0)
         self.fc2 = nn.Conv2d(self.head_channels, self.head_channels, 1, 1, 0)
@@ -117,7 +112,7 @@ class Head(nn.Module):
         # Learn scene coordinates relative to a mean coordinate (e.g. center of the scene).
         self.register_buffer("mean", mean.clone().detach().view(1, 3, 1, 1))
 
-    def forward(self, res):
+    def forward(self, res: torch.Tensor):
 
         x = F.relu(self.res3_conv1(res))
         x = F.relu(self.res3_conv2(x))
@@ -209,7 +204,7 @@ class Regressor(nn.Module):
         mean = torch.zeros((3,))
 
         # Count how many head blocks are in the dictionary.
-        pattern = re.compile(r"^heads\.\d+c0\.weight$")
+        pattern = re.compile(r"^heads\.res_blocks\.\d+\.0\.weight$")
         num_head_blocks = sum(1 for k in state_dict.keys() if pattern.match(k))
 
         # Whether the network uses homogeneous coordinates.
@@ -239,6 +234,18 @@ class Regressor(nn.Module):
         encoder_state_dict: encoder state dictionary
         head_state_dict: scene-specific head state dictionary
         """
+
+        # https://github.com/nianticlabs/ace/issues/20
+        # To make the model scriptable, converting to nn.moduleList has renamed some model parameters
+        # The following code backports the old pretrained weight format to the new format if it is necessary
+        cur_head_block = 0
+        while(f'{cur_head_block}c0.weight' in encoder_state_dict):
+            for weight_type in ["weight", "bias"]:
+                for weight_num in range(3):
+                    encoder_state_dict[f'res_blocks.{cur_head_block}.{weight_num}.{weight_type}'] = encoder_state_dict[f'{cur_head_block}c{weight_type}.{weight_type}']
+                    del encoder_state_dict[f'{cur_head_block}c{weight_type}.{weight_type}']
+            cur_head_block += 1
+
         # We simply merge the dictionaries and call the other constructor.
         merged_state_dict = {}
 
